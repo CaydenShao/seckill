@@ -22,19 +22,20 @@ http://www.springframework.org/schema/beans/spring-beans.xsd" xmlns:context="htt
         <!-- 获取连接超时时间 -->
         <property name="checkoutTimeout" value="1000"/>
         <!-- 当获取连接失败重试次数 -->
-        <property name="aquireRetryAttempts" value="2"/>
+        <property name="acquireRetryAttempts" value="2"/>
     </bean>
 
+    <!-- 约定大于配置 -->
     <!-- 3：配置SqlSessionFactory对象 -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactory">
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <!-- 注入数据库连接池 -->
         <property name="dataSource" ref="dataSource"/>
         <!-- 配置MyBatis全局配置文件：mybatis-config.xml -->
         <property name="configLocation" value="classpath:mybatis-config.xml"/>
-        <!-- 扫描entity包 使用别名 -->
+        <!-- 扫描entity包 使用别名（多个用;隔开） -->
         <property name="typeAliasesPackage" value="org.seckill.entity"/>
         <!-- 扫描sql配置文件：mapper需要的xml文件 -->
-        <property name="mapperLocation" value="classpath:mapper/*.xml"/>
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
     </bean>
 
     <!-- 4：配置扫描Dao接口包，动态实现Dao接口，注入到spring容器中 -->
