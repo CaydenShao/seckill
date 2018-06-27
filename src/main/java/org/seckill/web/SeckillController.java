@@ -53,7 +53,7 @@ public class SeckillController {
             method = RequestMethod.POST,
             produces = {"application/json;charset=UTF-8"})
     @ResponseBody
-    public SeckillResult<Exposer> exposer(long seckillId){
+    public SeckillResult<Exposer> exposer(@PathVariable("seckillId")  Long seckillId){
         SeckillResult<Exposer> result;
         try{
             Exposer exposer = this.seckillService.exportSeckillUrl(seckillId);
@@ -65,7 +65,10 @@ public class SeckillController {
         return result;
     }
 
-    @RequestMapping(value = "/{seckillId}/{md5}/execution")
+    @RequestMapping(value = "/{seckillId}/{md5}/execution",
+            method = RequestMethod.POST,
+            produces = {"application/json;charset=UTF-8"})
+    @ResponseBody
     public SeckillResult<SeckillExecution> execute(@PathVariable("seckillId") Long seckillId,
                                                    @PathVariable("md5") String md5,
                                                    @CookieValue(value = "killPhone", required = false) Long phone){
@@ -77,14 +80,14 @@ public class SeckillController {
             return new SeckillResult<SeckillExecution>(true, execution, null);
         }catch (RepeatKillException e){
             SeckillExecution execution = new SeckillExecution(seckillId, SeckillStateEnum.REPEAT_KILL);
-            return new SeckillResult<SeckillExecution>(false, execution, e.getMessage());
+            return new SeckillResult<SeckillExecution>(true, execution, e.getMessage());
         }catch (SeckillCloseException e){
             SeckillExecution excution = new SeckillExecution(seckillId, SeckillStateEnum.END);
-            return new SeckillResult<SeckillExecution>(false, excution, e.getMessage());
+            return new SeckillResult<SeckillExecution>(true, excution, e.getMessage());
         }catch (Exception e){
             this.logger.error(e.getMessage(), e);
             SeckillExecution excution = new SeckillExecution(seckillId, SeckillStateEnum.INNER_ERROR);
-            return new SeckillResult<SeckillExecution>(false, excution, e.getMessage());
+            return new SeckillResult<SeckillExecution>(true, excution, e.getMessage());
         }
     }
 

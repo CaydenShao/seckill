@@ -2,6 +2,7 @@ package org.seckill.service.impl;
 
 import org.seckill.dao.SeckillDao;
 import org.seckill.dao.SuccessKilledDao;
+import org.seckill.dao.cache.RedisDao;
 import org.seckill.dto.Exposer;
 import org.seckill.dto.SeckillExecution;
 import org.seckill.entity.Seckill;
@@ -33,6 +34,9 @@ public class SeckillServiceImpl implements SeckillService {
     @Autowired
     private SuccessKilledDao successKilledDao;
 
+    @Autowired
+    private RedisDao redisDao;
+
     private final String salt = "q5qwt345rewtaera3w5344352";
 
     @Override
@@ -54,10 +58,20 @@ public class SeckillServiceImpl implements SeckillService {
      * 3.不是所有的方法都需要事务，如只有一条修改操作，只读操作不需要事务控制。
      * */
     public Exposer exportSeckillUrl(long seckillId){
-        Seckill seckill = this.seckillDao.queryById(seckillId);
+        // 优化点：缓存优化:超时的基础上维护一致性
+        // 1.访问redis
+        Seckill seckill = redisDao.getSeckill(seckillId);
         if(seckill == null){
-            return new Exposer(false, seckillId);
+            // 2.访问数据库
+            seckill = seckillDao.queryById(seckillId);
+            if(seckill == null){
+                return new Exposer(false, seckillId);
+            }else{
+                // 3.放入redis
+                redisDao.putSeckill(seckill);
+            }
         }
+
         Date startTime = seckill.getStartTime();
         Date endTime = seckill.getEndTime();
         // 系统当前时间
